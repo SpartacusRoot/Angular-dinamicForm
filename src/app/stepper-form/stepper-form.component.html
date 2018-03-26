@@ -1,0 +1,92 @@
+<mat-card class='outer-container'>
+  <mat-vertical-stepper>
+    <mat-step label="DATI ANAGRAFICI" [stepControl]='personalData'>
+      <form [formGroup]='personalData' fxLayout="column" fxLayoutGap="5px" class='form-container'>
+        <mat-form-field>
+          <input matInput placeholder="Nome" formControlName='firstName' required>
+          <mat-error>il nome è richiesto</mat-error>
+        </mat-form-field>
+        <mat-form-field>
+          <input matInput placeholder="Cognome" formControlName='firstName' required>
+        </mat-form-field>
+        <mat-radio-group>
+          <span>Genere</span>
+          <br />
+          <br />
+          <mat-radio-button *ngFor='let gender of genders' [value]='gender' required>
+            {{gender}}
+          </mat-radio-button>
+          <br />
+        </mat-radio-group>
+        <mat-form-field>
+          <input matInput [matDatepicker]="picker" [min]="minDate" [max]="maxDate" placeholder="Data di nascita" [formControl]='defaultDate'>
+          <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+          <mat-datepicker touchUi="true" #picker [startAt]="startDate"></mat-datepicker>
+        </mat-form-field>
+      </form>
+      <div>
+        <button mat-raised-button color='primary' matStepperNext (ngSubmit)="onSubmit(personalData.value)">Avanti</button>
+      </div>
+    </mat-step>
+    <mat-step label='DATI DI RESIDENZA'>
+      <form [formGroup]="residenceData" fxLayout="column" fxLayoutGap="5px" class='form-container'>
+        <mat-form-field>
+          <mat-select placeholder="Regione" [formControl]='regionsControl' [(ngModel)]='selectedId' name='districs' (selectionChange)="resetDistricts($event)">
+            <mat-option *ngFor="let pro of regions" [value]="pro.id">
+              {{ pro.nome }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-select placeholder="Comune" [formControl]='municipalityControl' [(ngModel)]='selectedMun' name='municipality' (selectionChange)="resetDistricts($event)">
+            <mat-option *ngFor="let pro of filteredMunicipality | async" [value]="pro.id_regione">
+              {{ pro.nome }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-select placeholder="Provincia" [formControl]='districsControl' [(ngModel)]='selectedProv' name='districs'>
+            <mat-option *ngFor="let pro of filteredDistricts | async" [value]="pro.id_regione">
+              {{ pro.nome }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field>
+          <input matInput placeholder="Indirizzo" formControlName='street' required>
+          <mat-error>l'indirizzo è richiesto</mat-error>
+        </mat-form-field>
+        <mat-form-field>
+          <input matInput placeholder="CAP" formControlName='cap' type="number" required>
+          <mat-error>il cap è richiesto</mat-error>
+        </mat-form-field>
+        <div>
+          <button mat-raised-button color='primary' matStepperPrevious>Indietro</button>
+          <button mat-raised-button color='primary' matStepperNext [disabled]="!personalData.valid">Avanti</button>
+        </div>
+      </form>
+    </mat-step>
+    <mat-step label='RECAPITI' [stepControl]="contactsData">
+      <form  fxLayout="column" fxLayoutGap="5px" [formGroup]="contactsData" (ngSubmit)="onSubmit(contactsData.value)" class='form-container'>
+        <mat-form-field>
+          <span matPrefix>+39 &nbsp;</span>
+          <input matInput placeholder="numero di cellulare"  type="tel">
+        </mat-form-field>
+        <mat-form-field>
+          <input matInput placeholder="email" type="email" [formControl]="contactsData.controls['email']">
+          <div *ngIf="contactsData.controls['email'].hasError('emailTaken')">
+          <mat-error>
+            email already exist
+          </mat-error>
+          </div>
+        </mat-form-field>
+        <mat-form-field>
+          <textarea matInput placeholder="feedback" >
+              <!-- [disabled]="!email.valid" -->
+          </textarea>
+        </mat-form-field>
+      </form>
+    </mat-step>
+  </mat-vertical-stepper>
+</mat-card>

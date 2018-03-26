@@ -1,0 +1,7 @@
+.outer-container {
+  width: 50%;
+}
+
+.form-container > * {
+  width: 80%;
+}
