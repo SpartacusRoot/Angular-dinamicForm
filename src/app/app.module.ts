@@ -19,6 +19,7 @@ import {DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE, ErrorStateMatcher, ShowO
 import {MatCardModule} from '@angular/material/card';
 import {MatIconModule} from '@angular/material/icon';
 import {MatSelectModule} from '@angular/material/select';
+import {MatChipsModule} from '@angular/material/chips';
 // Components
 import { StepperFormComponent } from './stepper-form/stepper-form.component';
 import { AppComponent } from './app.component';
@@ -54,7 +55,8 @@ import { Customvalidators } from './service/emailValidator';
     MatMomentDateModule,
     MatCardModule,
     MatIconModule,
-    MatSelectModule
+    MatSelectModule,
+    MatChipsModule
 
   ],
   providers: [{provide: MAT_DATE_LOCALE, useValue: 'it-IT'}, ItaliaDateService,  EmailService, Customvalidators,

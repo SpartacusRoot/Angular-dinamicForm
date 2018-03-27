@@ -34,45 +34,50 @@
       </div>
     </mat-step>
     <mat-step label='DATI DI RESIDENZA'>
-      <form   fxLayout="column" fxLayoutGap="5px" class='form-container'>
+      <form   fxLayout="column" fxLayoutGap="5px" class='form-container' [formGroup]="residenceData">
         <mat-form-field>
-          <mat-select placeholder="Regione" [formControl]="regionsControl" [(ngModel)]='selectedId' name='districs' (selectionChange)="resetDistricts($event)">
+          <mat-select placeholder="Regione" formControlName="regionsControl"  [(ngModel)]='selectedId' name='districs' (selectionChange)="resetDistricts($event)">
             <mat-option *ngFor="let pro of regions" [value]="pro.id">
               {{ pro.nome }}
             </mat-option>
           </mat-select>
+          <mat-error *ngIf="residenceData.controls['regionsControl'].hasError('required')">inserisci la tua regione</mat-error>
         </mat-form-field>
 
         <mat-form-field>
-          <mat-select placeholder="Comune" [formControl]='municipalityControl' [(ngModel)]='selectedMun' name='municipality' (selectionChange)="resetDistricts($event)">
+          <mat-select placeholder="Comune"  formControlName='municipalityControl'
+            [(ngModel)]='selectedMun' name='municipality' (selectionChange)="resetDistricts($event)">
             <mat-option *ngFor="let pro of filteredMunicipality | async" [value]="pro.id_regione">
               {{ pro.nome }}
             </mat-option>
           </mat-select>
+          <mat-error *ngIf="residenceData.controls['municipalityControl'].hasError('required')">inserisci la tua città</mat-error>
         </mat-form-field>
 
         <mat-form-field>
-          <mat-select placeholder="Provincia" [formControl]='districsControl' [(ngModel)]='selectedProv' name='districs'>
+          <mat-select placeholder="Provincia" formControlName='districsControl' [(ngModel)]='selectedProv' name='districs'>
             <mat-option *ngFor="let pro of filteredDistricts | async" [value]="pro.id_regione">
               {{ pro.nome }}
             </mat-option>
           </mat-select>
+          <mat-error *ngIf="residenceData.controls['districsControl'].hasError('required')">inserisci la tua provincia</mat-error>
+        </mat-form-field>
+        <mat-form-field>
+          <input matInput placeholder="Indirizzo" formControlName="street" >
+          <mat-error *ngIf="residenceData.controls['street'].hasError('required')">l'indirizzo è richiesto</mat-error>
+        </mat-form-field>
+        <mat-form-field>
+          <input matInput formControlName="cap" placeholder="CAP" type="number"  >
+<mat-error *ngIf="residenceData.controls['cap'].hasError('required')">il CAP è richiesto</mat-error>
+<mat-error *ngIf="residenceData.controls['cap'].hasError('pattern')"></mat-error>
 
-        </mat-form-field>
-        <mat-form-field>
-          <input matInput placeholder="Indirizzo"  required>
-          <mat-error>l'indirizzo è richiesto</mat-error>
-        </mat-form-field>
-        <mat-form-field>
-          <input matInput placeholder="CAP" type="number" required>
-          <mat-error>il cap è richiesto</mat-error>
         </mat-form-field>
         <div>
           <button mat-raised-button color='primary' matStepperPrevious>Indietro</button>
-          <button mat-raised-button color='primary' matStepperNext >Avanti</button>
+          <button mat-raised-button color='primary' matStepperNext [disabled]="!residenceData.valid">Avanti</button>
         </div>
       </form>
-      <!-- <p>Form value: {{ residenceData.value | json }}</p> -->
+       <p>Form value: {{ residenceData.value | json }}</p>
     </mat-step>
     <mat-step label='RECAPITI' [stepControl]="contactsData">
       <form fxLayout="column" fxLayoutGap="5px" [formGroup]="contactsData" (ngSubmit)="onSubmit(contactsData.value)" class='form-container'>
@@ -96,13 +101,34 @@
           </mat-error>
         </mat-form-field>
         <mat-form-field>
-          <textarea matInput placeholder="feedback" [disabled]="!contactsData.controls['email'].valid">
+          <textarea matInput placeholder="feedback" [formControl]="contactsData.controls['feedback']" [disabled]="!contactsData.controls['email'].valid">
           </textarea>
         </mat-form-field>
+        <div>
+          <button mat-raised-button color='primary' matStepperPrevious>Indietro</button>
+          <button mat-raised-button color='primary' matStepperNext [disabled]="!contactsData.valid">Avanti</button>
+        </div>
       </form>
+      <p>Form value: {{ contactsData.value | json }}</p>
     </mat-step >
     <mat-step label="INFORMAZIONI PERSONALI">
-
+      <form>
+      <mat-form-field  class="chip-list">
+        <mat-chip-list #chipList>
+          <mat-chip *ngFor="let fruit of fruits" [selectable]="selectable"
+                   [removable]="removable" (remove)="remove(fruit)">
+            {{fruit.name}}
+            <mat-icon matChipRemove *ngIf="removable">cancel</mat-icon>
+          </mat-chip>
+          <input placeholder="inserisci la tua frutta preferita"
+                 [matChipInputFor]="chipList"
+                 [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+                 [matChipInputAddOnBlur]="addOnBlur"
+                 (matChipInputTokenEnd)="add($event)" />
+        </mat-chip-list>
+        <mat-hint>inserisci il nome del tuo frutto preferito poi premi enter  per aggiungere il tuo frutto</mat-hint>
+      </mat-form-field>
+</form>
     </mat-step>
   </mat-vertical-stepper>
 </mat-card>

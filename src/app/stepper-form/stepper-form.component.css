@@ -5,3 +5,7 @@
 .form-container > * {
   width: 80%;
 }
+
+.chip-list {
+  width: 60%;
+}

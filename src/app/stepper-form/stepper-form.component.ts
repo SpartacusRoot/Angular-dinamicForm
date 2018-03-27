@@ -31,6 +31,9 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 // validators
 import { Customvalidators } from '../service/emailValidator';
 
+// chip e keboard event
+import {MatChipInputEvent} from '@angular/material';
+import {ENTER, COMMA} from '@angular/cdk/keycodes';
 
 // test
 export class MyErrorStateMatcher implements ErrorStateMatcher {
@@ -81,9 +84,45 @@ export class StepperFormComponent implements OnInit {
   matcher = new MyErrorStateMatcher();
   // formControl districs select
 
-  districsControl: FormControl = new FormControl('', [Validators.required]);
-  regionsControl: FormControl = new FormControl('', [Validators.required]);
- municipalityControl: FormControl = new FormControl('');
+// actions for chips
+  visible = true;
+  selectable = true;
+  removable = true;
+  addOnBlur = true;
+// inserimento frutta nei chips
+
+  fruits = [
+  ];
+   // Enter, comma
+   separatorKeysCodes = [ENTER, COMMA];
+
+   add(event: MatChipInputEvent): void {
+    const input = event.input;
+    const value = event.value;
+
+    // Add our fruit
+    if ((value || '').trim()) {
+      this.fruits.push({ name: value.trim() });
+    }
+
+    // Reset the input value
+    if (input) {
+      input.value = '';
+    }
+  }
+
+  remove(fruit: any): void {
+    const index = this.fruits.indexOf(fruit);
+
+    if (index >= 0) {
+      this.fruits.splice(index, 1);
+    }
+  }
+//   districsControl: FormControl = new FormControl('', [Validators.required]);
+//   regionsControl: FormControl = new FormControl('', [Validators.required]);
+//  municipalityControl: FormControl = new FormControl('');
+
+
 
   constructor(
     private fb: FormBuilder,
@@ -102,13 +141,13 @@ export class StepperFormComponent implements OnInit {
        '', Validators.required]
     });
 
-    // this.residenceData = new FormGroup({
-    //   districsControl: new FormControl('', [Validators.required]),
-    //   regionsControl: new FormControl('', [Validators.required]),
-    //   municipalityControl: new FormControl(''),
-    //   street: new FormControl(''),
-    //   cap: new FormControl('')
-    // });
+    this.residenceData = new FormGroup({
+      districsControl: new FormControl({value: '' , disabled: true}, [Validators.required]),
+      regionsControl: new FormControl('', [Validators.required]),
+      municipalityControl: new FormControl({value: '' , disabled: true}, [Validators.required]),
+      street: new FormControl('', Validators.required ),
+      cap: new FormControl('', [Validators.required, Validators.pattern('[0-9]*') ])
+    });
 
     this.contactsData = this.fb.group({
       email: [
@@ -116,7 +155,8 @@ export class StepperFormComponent implements OnInit {
         Validators.email,
         Customvalidators.checkDuplicateEmail(this.emailService)
       ],
-      number: ['', [Validators.required, Validators.pattern('[0-9]*')]]
+      number: ['', [Validators.required, Validators.pattern('[0-9]*')]],
+      feedback: ['']
     });
   }
 
@@ -126,7 +166,7 @@ export class StepperFormComponent implements OnInit {
       console.log(this.regions);
     });
 
-    this.filteredMunicipality = this.regionsControl.valueChanges.pipe(
+    this.filteredMunicipality = this.residenceData.controls['regionsControl'].valueChanges.pipe(
       startWith(null),
       debounceTime(200),
       distinctUntilChanged(),
@@ -135,7 +175,7 @@ export class StepperFormComponent implements OnInit {
       })
     );
 
-    this.filteredDistricts = this.municipalityControl.valueChanges.pipe(
+    this.filteredDistricts = this.residenceData.controls['municipalityControl'].valueChanges.pipe(
       switchMap(val => {
         return this.italiaDateService.filterDistrict(val || '');
       })
@@ -143,7 +183,9 @@ export class StepperFormComponent implements OnInit {
   }
 
   resetDistricts() {
-    this.districsControl.reset();
+    this.residenceData.controls['districsControl'].reset();
+    this.residenceData.controls['districsControl'].enable();
+    this.residenceData.controls['municipalityControl'].enable();
   }
 
   onSubmit(value: string) {
