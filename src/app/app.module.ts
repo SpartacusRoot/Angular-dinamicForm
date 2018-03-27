@@ -26,7 +26,11 @@ import { AppComponent } from './app.component';
 // service
 import { ItaliaDateService } from './service/italia-date.service';
 import { EmailService } from './service/email.service';
-// import { Customvalidators } from './service/emailValidator';
+
+
+// validators
+import { Customvalidators } from './service/emailValidator';
+
 
 @NgModule({
   declarations: [
@@ -53,7 +57,7 @@ import { EmailService } from './service/email.service';
     MatSelectModule
 
   ],
-  providers: [{provide: MAT_DATE_LOCALE, useValue: 'it-IT'}, ItaliaDateService,  EmailService,
+  providers: [{provide: MAT_DATE_LOCALE, useValue: 'it-IT'}, ItaliaDateService,  EmailService, Customvalidators,
   {provide: ErrorStateMatcher, useClass: ShowOnDirtyErrorStateMatcher}],
   bootstrap: [AppComponent]
 })

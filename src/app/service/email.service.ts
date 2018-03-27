@@ -14,6 +14,7 @@ export class EmailService {
     map(response => response.filter(res => {
        return res.email === email ;
      })),
+     map(res => !res.length)
    );
  }
 }

@@ -6,9 +6,11 @@ import {
   Validators,
   FormControl,
   FormsModule,
-  AbstractControl
+  AbstractControl,
+  FormGroupDirective,
+  NgForm
 } from '@angular/forms';
-
+import { ErrorStateMatcher } from '@angular/material/core';
 import { ItaliaDateService } from '../service/italia-date.service';
 import { EmailService } from '../service/email.service';
 import { Regioni, Districs } from '../models/italia.model';
@@ -22,9 +24,28 @@ import {
 } from 'rxjs/operators';
 import { distinctUntilChanged } from 'rxjs/operators/distinctUntilChanged';
 import { Observable } from 'rxjs/Observable';
-// import { Customvalidators } from '../service/emailValidator';
+
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 
+
+// validators
+import { Customvalidators } from '../service/emailValidator';
+
+
+// test
+export class MyErrorStateMatcher implements ErrorStateMatcher {
+  isErrorState(
+    control: FormControl | null,
+    form: FormGroupDirective | NgForm | null
+  ): boolean {
+    const isSubmitted = form && form.submitted;
+    return !!(
+      control &&
+      control.invalid &&
+      (control.dirty || control.touched || isSubmitted)
+    );
+  }
+}
 
 @Component({
   selector: 'app-stepper-form',
@@ -45,6 +66,8 @@ export class StepperFormComponent implements OnInit {
   contactsData: FormGroup;
   // genders for radio button
   genders = ['Uomo', 'Donna'];
+  // value form radio button
+  myradio: string[] = [];
   // mat select filtered Districs and Municipality
   filteredDistricts: any;
   filteredMunicipality: any;
@@ -55,11 +78,12 @@ export class StepperFormComponent implements OnInit {
   defaultDate = new FormControl(new Date(2017, 0, 1));
 
   email: AbstractControl;
-
+  matcher = new MyErrorStateMatcher();
   // formControl districs select
+
   districsControl: FormControl = new FormControl('', [Validators.required]);
   regionsControl: FormControl = new FormControl('', [Validators.required]);
-  municipalityControl: FormControl = new FormControl('');
+ municipalityControl: FormControl = new FormControl('');
 
   constructor(
     private fb: FormBuilder,
@@ -67,27 +91,36 @@ export class StepperFormComponent implements OnInit {
     private emailService: EmailService,
     private http: HttpClient
   ) {
-    this.personalData = new FormGroup({
-      firstName: new FormControl('', Validators.required),
-      lastname: new FormControl('', Validators.required),
-      gender: new FormControl(this.genders, Validators.required),
-      date: new FormControl(new Date(2017, 0, 1))
+
+
+
+    this.personalData = this.fb.group({
+      firstName: ['', Validators.required],
+      lastName: ['', Validators.required],
+      gender: ['', Validators.required],
+      date: [ // new Date(2017, 0, 1),
+       '', Validators.required]
     });
 
-    this.residenceData = new FormGroup({
-      districsControl: new FormControl('', [Validators.required]),
-      regionsControl: new FormControl('', [Validators.required]),
-      municipalityControl: new FormControl(''),
-      street: new FormControl(''),
-      cap: new FormControl('')
+    // this.residenceData = new FormGroup({
+    //   districsControl: new FormControl('', [Validators.required]),
+    //   regionsControl: new FormControl('', [Validators.required]),
+    //   municipalityControl: new FormControl(''),
+    //   street: new FormControl(''),
+    //   cap: new FormControl('')
+    // });
+
+    this.contactsData = this.fb.group({
+      email: [
+        '',
+        Validators.email,
+        Customvalidators.checkDuplicateEmail(this.emailService)
+      ],
+      number: ['', [Validators.required, Validators.pattern('[0-9]*')]]
     });
   }
 
   ngOnInit() {
-    this.contactsData = this.fb.group({
-      email: ['', Validators.required, this.validate.bind(this)]
-    });
-
     this.italiaDateService.getRegion().subscribe(resp => {
       this.regions = resp;
       console.log(this.regions);
@@ -117,24 +150,19 @@ export class StepperFormComponent implements OnInit {
     console.log('you submitted value', value);
   }
 
-  // get email() {
-  //   return this.contactsData.get('email');
+  // ora uso un service esterno
+  // validate(control: AbstractControl) {
+
+  //   return this.http
+  //     .get<any>('https://jsonplaceholder.typicode.com/users')
+  //     .pipe(
+  //       map(
+  //         res => res.filter(resp => resp.email === control.value),
+  //         map(result => {
+  //           return result ? null : { emailTaken: true };
+  //         })
+  //       ),
+
+  //     );
   // }
-
-
-
-  validate(control: AbstractControl) {
-
-    return this.http
-      .get<any>('https://jsonplaceholder.typicode.com/users')
-      .pipe(
-        map(
-          res => res.filter(resp => resp.email === control.value),
-          map(result => {
-            return result ? null : { emailTaken: true };
-          })
-        ),
-
-      );
-  }
 }

@@ -1,37 +1,42 @@
 <mat-card class='outer-container'>
-  <mat-vertical-stepper>
+  <mat-vertical-stepper [linear]="true">
     <mat-step label="DATI ANAGRAFICI" [stepControl]='personalData'>
       <form [formGroup]='personalData' fxLayout="column" fxLayoutGap="5px" class='form-container'>
         <mat-form-field>
-          <input matInput placeholder="Nome" formControlName='firstName' required>
-          <mat-error>il nome è richiesto</mat-error>
+          <input matInput placeholder="Nome" [formControl]="personalData.controls['firstName']" required>
+          <mat-error *ngIf="personalData.controls['firstName'].hasError('required')">il nome è richiesto</mat-error>
         </mat-form-field>
         <mat-form-field>
-          <input matInput placeholder="Cognome" formControlName='firstName' required>
+          <input matInput placeholder="Cognome"  [formControl]="personalData.controls['lastName']" required>
+          <mat-error *ngIf="personalData.controls['lastName'].hasError('required')">il cognome è richiesto</mat-error>
         </mat-form-field>
-        <mat-radio-group>
+        <mat-radio-group [formControl]="personalData.controls['gender']" required="true">
           <span>Genere</span>
           <br />
           <br />
-          <mat-radio-button *ngFor='let gender of genders' [value]='gender' required>
+          <mat-radio-button *ngFor='let gender of genders' [value]='gender' >
             {{gender}}
           </mat-radio-button>
           <br />
         </mat-radio-group>
-        <mat-form-field>
-          <input matInput [matDatepicker]="picker" [min]="minDate" [max]="maxDate" placeholder="Data di nascita" [formControl]='defaultDate'>
+        <mat-form-field >
+          <input matInput [matDatepicker]="picker" [min]="minDate" [max]="maxDate" placeholder="Data di nascita"  [formControl]="personalData.controls['date']" required>
           <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
           <mat-datepicker touchUi="true" #picker [startAt]="startDate"></mat-datepicker>
+          <mat-hint>clicca sull' icona per inserire la tua data di nascita</mat-hint>
+          <mat-error *ngIf="personalData.controls['date'].hasError('required')">la data di nascita è richiesta</mat-error>
         </mat-form-field>
       </form>
+      <p>Form value: {{ personalData.value | json }}</p>
+
       <div>
-        <button mat-raised-button color='primary' matStepperNext (ngSubmit)="onSubmit(personalData.value)">Avanti</button>
+        <button mat-raised-button color='primary' matStepperNext (ngSubmit)="onSubmit(personalData.value)" [disabled]="personalData.invalid && personalData.controls['date'].invalid ">Avanti</button>
       </div>
     </mat-step>
     <mat-step label='DATI DI RESIDENZA'>
-      <form [formGroup]="residenceData" fxLayout="column" fxLayoutGap="5px" class='form-container'>
+      <form   fxLayout="column" fxLayoutGap="5px" class='form-container'>
         <mat-form-field>
-          <mat-select placeholder="Regione" [formControl]='regionsControl' [(ngModel)]='selectedId' name='districs' (selectionChange)="resetDistricts($event)">
+          <mat-select placeholder="Regione" [formControl]="regionsControl" [(ngModel)]='selectedId' name='districs' (selectionChange)="resetDistricts($event)">
             <mat-option *ngFor="let pro of regions" [value]="pro.id">
               {{ pro.nome }}
             </mat-option>
@@ -52,41 +57,52 @@
               {{ pro.nome }}
             </mat-option>
           </mat-select>
+
         </mat-form-field>
         <mat-form-field>
-          <input matInput placeholder="Indirizzo" formControlName='street' required>
+          <input matInput placeholder="Indirizzo"  required>
           <mat-error>l'indirizzo è richiesto</mat-error>
         </mat-form-field>
         <mat-form-field>
-          <input matInput placeholder="CAP" formControlName='cap' type="number" required>
+          <input matInput placeholder="CAP" type="number" required>
           <mat-error>il cap è richiesto</mat-error>
         </mat-form-field>
         <div>
           <button mat-raised-button color='primary' matStepperPrevious>Indietro</button>
-          <button mat-raised-button color='primary' matStepperNext [disabled]="!personalData.valid">Avanti</button>
+          <button mat-raised-button color='primary' matStepperNext >Avanti</button>
         </div>
       </form>
+      <!-- <p>Form value: {{ residenceData.value | json }}</p> -->
     </mat-step>
     <mat-step label='RECAPITI' [stepControl]="contactsData">
-      <form  fxLayout="column" fxLayoutGap="5px" [formGroup]="contactsData" (ngSubmit)="onSubmit(contactsData.value)" class='form-container'>
+      <form fxLayout="column" fxLayoutGap="5px" [formGroup]="contactsData" (ngSubmit)="onSubmit(contactsData.value)" class='form-container'>
         <mat-form-field>
           <span matPrefix>+39 &nbsp;</span>
-          <input matInput placeholder="numero di cellulare"  type="tel">
+          <input matInput #number maxlength=10 placeholder="numero di cellulare" type="tel" [formControl]="contactsData.controls['number']"
+            required>
+          <mat-hint align="end">{{number.value.length}} / 10</mat-hint>
+          <mat-error *ngIf="contactsData.controls['number'].hasError('pattern')">devono essere inseriti solo caratteri numerici</mat-error>
+          <mat-error *ngIf="contactsData.controls['number'].hasError('required')">il numero di telefono è richiesto</mat-error>
         </mat-form-field>
+
         <mat-form-field>
-          <input matInput placeholder="email" type="email" [formControl]="contactsData.controls['email']">
-          <div *ngIf="contactsData.controls['email'].hasError('emailTaken')">
-          <mat-error>
-            email already exist
+          <input matInput placeholder="email" type="email" [errorStateMatcher]="matcher" [formControl]="contactsData.controls['email']"
+            required>
+          <mat-error *ngIf="contactsData.controls['email'].hasError('email')">
+            Please enter a valid email address
           </mat-error>
-          </div>
+          <mat-error *ngIf="contactsData.controls['email'].hasError('emailTaken')">
+            email already in use
+          </mat-error>
         </mat-form-field>
         <mat-form-field>
-          <textarea matInput placeholder="feedback" >
-              <!-- [disabled]="!email.valid" -->
+          <textarea matInput placeholder="feedback" [disabled]="!contactsData.controls['email'].valid">
           </textarea>
         </mat-form-field>
       </form>
+    </mat-step >
+    <mat-step label="INFORMAZIONI PERSONALI">
+
     </mat-step>
   </mat-vertical-stepper>
 </mat-card>
